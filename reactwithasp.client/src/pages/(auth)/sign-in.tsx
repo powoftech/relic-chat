@@ -51,7 +51,7 @@ export default function SignInPage() {
 
   return (
     <div className="grid min-h-svh md:grid-cols-2">
-      <div className="bg-muted relative hidden h-screen flex-col p-6 md:flex md:p-10 dark:border-r">
+      <div className="bg-muted relative hidden h-svh flex-col p-6 md:flex md:p-10 dark:border-r">
         <div className="relative z-20 flex items-center text-lg font-medium">
           <Link to={'/'}>
             <Logo className="size-9" />
@@ -68,7 +68,7 @@ export default function SignInPage() {
         </div>
       </div>
 
-      <div className="flex h-screen min-h-screen flex-col gap-4 overflow-y-scroll p-6 md:p-10">
+      <div className="flex h-svh min-h-svh flex-col gap-4 overflow-y-scroll p-6 md:p-10">
         <div className="flex flex-1 items-center justify-center">
           <div className="flex w-full flex-col gap-6 md:max-w-xs">
             <div className="flex flex-col gap-2">

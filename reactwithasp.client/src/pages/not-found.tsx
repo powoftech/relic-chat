@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 export default function NotFoundPage() {
   return (
     <>
-      <div className="flex min-h-screen w-full flex-col">
+      <div className="flex min-h-svh w-full flex-col">
         <div className="m-auto flex h-full w-full max-w-sm flex-col items-center justify-center">
           <Logo className="size-9" />
 
