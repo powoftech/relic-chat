@@ -1,18 +1,53 @@
+import { zodResolver } from '@hookform/resolvers/zod'
 import { EyeIcon, EyeOffIcon, LogInIcon } from 'lucide-react'
 import { useState } from 'react'
+import { useForm } from 'react-hook-form'
 import { Link } from 'react-router'
 import { toast } from 'sonner'
+import * as z from 'zod'
 
 import GithubMarkWhite from '@/assets/github-mark-white.svg'
 import GithubMark from '@/assets/github-mark.svg'
 import GoogleMark from '@/assets/google-mark.svg'
 import Logo from '@/components/logo'
 import { Button } from '@/components/ui/button'
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+
+const formSchema = z.object({
+  email: z.string().email({ message: 'Email address is invalid.' }),
+  password: z.string().nonempty({
+    message: 'Password is required.',
+  }),
+})
+
+type FormSchema = z.infer<typeof formSchema>
 
 export default function SignInPage() {
   const [showPassword, setShowPassword] = useState(false)
+
+  const form = useForm<FormSchema>({
+    resolver: zodResolver(formSchema),
+  })
+
+  async function onSubmit(data: FormSchema) {
+    console.log(data)
+  }
+
+  async function GitHubSignIn() {
+    toast('Coming soon.')
+  }
+
+  async function GoogleSignIn() {
+    toast('Coming soon.')
+  }
 
   return (
     <div className="grid min-h-svh md:grid-cols-2">
@@ -33,7 +68,7 @@ export default function SignInPage() {
         </div>
       </div>
 
-      <div className="flex h-screen flex-col gap-4 overflow-y-scroll p-6 md:p-10">
+      <div className="flex h-screen min-h-screen flex-col gap-4 overflow-y-scroll p-6 md:p-10">
         <div className="flex flex-1 items-center justify-center">
           <div className="flex w-full flex-col gap-6 md:max-w-xs">
             <div className="flex flex-col gap-2">
@@ -74,53 +109,67 @@ export default function SignInPage() {
                 or
               </span>
             </div>
-
-            <form className="flex flex-col gap-6">
-              <div className="grid gap-6">
-                <div className="grid gap-2">
-                  <Label htmlFor="email">Email address</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="Email address"
-                    required
+            <Form {...form}>
+              <form
+                onSubmit={form.handleSubmit(onSubmit)}
+                className="flex flex-col gap-6"
+              >
+                <div className="grid gap-6">
+                  <FormField
+                    control={form.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Email address</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Email address" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
                   />
+                  <FormField
+                    control={form.control}
+                    name="password"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Password</FormLabel>
+                        <div className="relative">
+                          <FormControl>
+                            <Input
+                              type={showPassword ? 'text' : 'password'}
+                              placeholder="Password"
+                              {...field}
+                            />
+                          </FormControl>
+                          <Button
+                            type="button"
+                            variant={'ghost'}
+                            size={'icon'}
+                            className="absolute top-0 right-0 h-full px-3 hover:bg-inherit dark:hover:bg-inherit"
+                            onClick={() => setShowPassword(!showPassword)}
+                          >
+                            {showPassword ? (
+                              <EyeIcon className="size-4" />
+                            ) : (
+                              <EyeOffIcon className="size-4" />
+                            )}
+                            <span className="sr-only">
+                              {showPassword ? 'Hide password' : 'Show password'}
+                            </span>
+                          </Button>
+                        </div>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <Button type="submit" className="w-full">
+                    <LogInIcon />
+                    Sign In
+                  </Button>
                 </div>
-                <div className="grid gap-2">
-                  <div className="flex items-center">
-                    <Label htmlFor="password">Password</Label>
-                  </div>
-                  <div className="relative">
-                    <Input
-                      id="password"
-                      type={showPassword ? 'text' : 'password'}
-                      placeholder="Password"
-                      required
-                    />
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      className="absolute top-0 right-0 h-full px-3"
-                      onClick={() => setShowPassword(!showPassword)}
-                    >
-                      {showPassword ? (
-                        <EyeIcon className="size-4" />
-                      ) : (
-                        <EyeOffIcon className="size-4" />
-                      )}
-                      <span className="sr-only">
-                        {showPassword ? 'Hide password' : 'Show password'}
-                      </span>
-                    </Button>
-                  </div>
-                </div>
-                <Button type="submit" className="w-full">
-                  <LogInIcon />
-                  Sign In
-                </Button>
-              </div>
-            </form>
+              </form>
+            </Form>
 
             <div className="text-center text-sm">
               <Link
@@ -134,7 +183,7 @@ export default function SignInPage() {
             <div className="text-muted-foreground text-center text-sm">
               Don't have an account?{' '}
               <Link
-                to={'/signup'}
+                to={'/sign-up'}
                 className="text-foreground underline underline-offset-2"
               >
                 Sign up for Relic
@@ -145,12 +194,4 @@ export default function SignInPage() {
       </div>
     </div>
   )
-
-  async function GitHubSignIn() {
-    toast('Coming soon.')
-  }
-
-  async function GoogleSignIn() {
-    toast('Coming soon.')
-  }
 }
