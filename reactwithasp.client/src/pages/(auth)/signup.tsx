@@ -1,8 +1,8 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { EyeIcon, EyeOffIcon, LogInIcon } from 'lucide-react'
+import { EyeIcon, EyeOffIcon, LoaderCircleIcon } from 'lucide-react'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
-import { Link } from 'react-router'
+import { Link, useNavigate } from 'react-router'
 import * as z from 'zod'
 
 import Logo from '@/components/logo'
@@ -16,10 +16,13 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
+import api from '@/services/api'
+import { AxiosError, HttpStatusCode } from 'axios'
+import { toast } from 'sonner'
 
 const formSchema = z.object({
   email: z.string().email({ message: 'Email address is invalid.' }),
-  username: z
+  userName: z
     .string()
     .min(2, { message: 'Username is too short.' })
     .max(30, { message: 'Username is too long.' })
@@ -29,7 +32,7 @@ const formSchema = z.object({
     .regex(/.*[a-zA-Z].*/, {
       message: 'Username must contain at least one letter.',
     }),
-  name: z.string().min(2, { message: 'Name is too short.' }),
+  displayName: z.string().min(2, { message: 'Display name is too short.' }),
   password: z.string().min(8, { message: 'Password is too short.' }),
 })
 
@@ -37,13 +40,27 @@ type FormSchema = z.infer<typeof formSchema>
 
 export default function SignUpPage() {
   const [showPassword, setShowPassword] = useState(false)
+  const navigate = useNavigate()
 
   const form = useForm<FormSchema>({
     resolver: zodResolver(formSchema),
   })
 
   async function onSubmit(data: FormSchema) {
-    console.log(data)
+    try {
+      const response = await api.post('/auth/signup', data)
+
+      if (response.status === HttpStatusCode.Ok) {
+        navigate(`/verify?token=${response.data.verifyToken}`)
+        return
+      }
+    } catch (error) {
+      if (error instanceof AxiosError && error.response) {
+        toast.warning(error.response?.data.message)
+      } else {
+        toast.error('An error occurred while signing up.')
+      }
+    }
   }
 
   return (
@@ -69,7 +86,11 @@ export default function SignUpPage() {
                       <FormItem>
                         <FormLabel>Email address</FormLabel>
                         <FormControl>
-                          <Input placeholder="Email address" {...field} />
+                          <Input
+                            placeholder="Email address"
+                            disabled={form.formState.isSubmitting}
+                            {...field}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -77,12 +98,16 @@ export default function SignUpPage() {
                   />
                   <FormField
                     control={form.control}
-                    name="username"
+                    name="userName"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Username</FormLabel>
                         <FormControl>
-                          <Input placeholder="Username" {...field} />
+                          <Input
+                            placeholder="Username"
+                            disabled={form.formState.isSubmitting}
+                            {...field}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -90,12 +115,16 @@ export default function SignUpPage() {
                   />
                   <FormField
                     control={form.control}
-                    name="name"
+                    name="displayName"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Full name</FormLabel>
+                        <FormLabel>Display name</FormLabel>
                         <FormControl>
-                          <Input placeholder="Full name" {...field} />
+                          <Input
+                            placeholder="Display name"
+                            disabled={form.formState.isSubmitting}
+                            {...field}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -112,6 +141,7 @@ export default function SignUpPage() {
                             <Input
                               type={showPassword ? 'text' : 'password'}
                               placeholder="Password"
+                              disabled={form.formState.isSubmitting}
                               {...field}
                             />
                           </FormControl>
@@ -136,8 +166,14 @@ export default function SignUpPage() {
                       </FormItem>
                     )}
                   />
-                  <Button type="submit" className="w-full">
-                    <LogInIcon />
+                  <Button
+                    type="submit"
+                    disabled={form.formState.isSubmitting}
+                    className="w-full"
+                  >
+                    {form.formState.isSubmitting && (
+                      <LoaderCircleIcon className="animate-spin" />
+                    )}
                     Sign Up
                   </Button>
                 </div>
@@ -148,14 +184,14 @@ export default function SignUpPage() {
           <div className="text-muted-foreground text-center text-sm text-balance">
             By clicking continue, you agree to our{' '}
             <Link
-              to={'/terms-of service'}
+              to={'/terms-of-service'}
               className="hover:text-foreground underline underline-offset-2"
             >
               Terms of Service
             </Link>{' '}
             and{' '}
             <Link
-              to={'privacy-policy'}
+              to={'/privacy-policy'}
               className="hover:text-foreground underline underline-offset-2"
             >
               Privacy Policy
@@ -168,11 +204,12 @@ export default function SignUpPage() {
           <div className="text-muted-foreground text-center text-sm">
             Already have an account?{' '}
             <Link
-              to={'/sign-in'}
+              to={'/signin'}
               className="text-foreground underline underline-offset-2"
             >
-              Sign in here.
+              Sign in here
             </Link>
+            .
           </div>
         </div>
       </div>

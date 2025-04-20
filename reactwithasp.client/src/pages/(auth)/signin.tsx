@@ -1,11 +1,3 @@
-import { zodResolver } from '@hookform/resolvers/zod'
-import { EyeIcon, EyeOffIcon, LogInIcon } from 'lucide-react'
-import { useState } from 'react'
-import { useForm } from 'react-hook-form'
-import { Link } from 'react-router'
-import { toast } from 'sonner'
-import * as z from 'zod'
-
 import GithubMarkWhite from '@/assets/github-mark-white.svg'
 import GithubMark from '@/assets/github-mark.svg'
 import GoogleMark from '@/assets/google-mark.svg'
@@ -20,9 +12,20 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
+import api from '@/services/api'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { AxiosError, HttpStatusCode } from 'axios'
+import { EyeIcon, EyeOffIcon, LoaderCircleIcon } from 'lucide-react'
+import { useState } from 'react'
+import { useForm } from 'react-hook-form'
+import { Link, useNavigate } from 'react-router'
+import { toast } from 'sonner'
+import * as z from 'zod'
 
 const formSchema = z.object({
-  email: z.string().email({ message: 'Email address is invalid.' }),
+  email: z.string().nonempty({
+    message: 'Email address is required.',
+  }),
   password: z.string().nonempty({
     message: 'Password is required.',
   }),
@@ -32,21 +35,41 @@ type FormSchema = z.infer<typeof formSchema>
 
 export default function SignInPage() {
   const [showPassword, setShowPassword] = useState(false)
-
   const form = useForm<FormSchema>({
     resolver: zodResolver(formSchema),
   })
+  const navigate = useNavigate()
 
   async function onSubmit(data: FormSchema) {
-    console.log(data)
+    try {
+      // Make sure form data is not empty
+      if (!data.email || !data.password) {
+        toast.warning('Please fill in all required fields')
+        return
+      }
+
+      console.log('Submitting data:', data)
+      const response = await api.post('/auth/signin', data)
+
+      if (response.status === HttpStatusCode.Ok) {
+        navigate(`/verify?token=${response.data.verifyToken}`)
+        return
+      }
+    } catch (error) {
+      if (error instanceof AxiosError && error.response) {
+        toast.warning('Email address or password is incorrect.')
+      } else {
+        toast.error('An error occurred while signing up.')
+      }
+    }
   }
 
   async function GitHubSignIn() {
-    toast('Coming soon.')
+    toast.info('Coming soon.')
   }
 
   async function GoogleSignIn() {
-    toast('Coming soon.')
+    toast.info('Coming soon.')
   }
 
   return (
@@ -81,7 +104,7 @@ export default function SignInPage() {
                 <h1 className="text-2xl font-bold">Sign in to Relic</h1>
               </div>
             </div>
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-3">
               <Button
                 variant="outline"
                 className="w-full"
@@ -122,7 +145,11 @@ export default function SignInPage() {
                       <FormItem>
                         <FormLabel>Email address</FormLabel>
                         <FormControl>
-                          <Input placeholder="Email address" {...field} />
+                          <Input
+                            placeholder="Email address"
+                            disabled={form.formState.isSubmitting}
+                            {...field}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -139,6 +166,7 @@ export default function SignInPage() {
                             <Input
                               type={showPassword ? 'text' : 'password'}
                               placeholder="Password"
+                              disabled={form.formState.isSubmitting}
                               {...field}
                             />
                           </FormControl>
@@ -163,9 +191,15 @@ export default function SignInPage() {
                       </FormItem>
                     )}
                   />
-                  <Button type="submit" className="w-full">
-                    <LogInIcon />
-                    Sign In
+                  <Button
+                    type="submit"
+                    className="w-full"
+                    disabled={form.formState.isSubmitting}
+                  >
+                    {form.formState.isSubmitting && (
+                      <LoaderCircleIcon className="animate-spin" />
+                    )}
+                    Continue
                   </Button>
                 </div>
               </form>
@@ -183,7 +217,7 @@ export default function SignInPage() {
             <div className="text-muted-foreground text-center text-sm">
               Don't have an account?{' '}
               <Link
-                to={'/sign-up'}
+                to={'/signup'}
                 className="text-foreground underline underline-offset-2"
               >
                 Sign up for Relic

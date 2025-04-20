@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <table
+      width="100%"
+      border="0"
+      cellspacing="0"
+      cellpadding="0"
+      style="width: 100% !important"
+    >
+      <tbody>
+        <tr>
+          <td align="center">
+            <table
+              style="
+                border: 1px solid #e4e4e7;
+                border-radius: 5px;
+                margin: 40px 0;
+              "
+              width="600"
+              border="0"
+              cellspacing="0"
+              cellpadding="40"
+            >
+              <tbody>
+                <tr>
+                  <td align="center">
+                    <div
+                      style="
+                        font-family:
+                          -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+                          Oxygen, Ubuntu, Cantarell, 'Fira Sans', 'Droid Sans',
+                          'Helvetica Neue', sans-serif;
+                        text-align: left;
+                        width: 465px;
+                      "
+                    >
+                      <table
+                        width="100%"
+                        border="0"
+                        cellspacing="0"
+                        cellpadding="0"
+                        style="width: 100%"
+                      >
+                        <tbody>
+                          <tr>
+                            <td align="center">
+                              <h1
+                                style="
+                                  color: rgb(0, 0, 0);
+                                  font-family:
+                                    -apple-system, BlinkMacSystemFont,
+                                    'Segoe UI', Roboto, Oxygen, Ubuntu,
+                                    Cantarell, 'Fira Sans', 'Droid Sans',
+                                    'Helvetica Neue', sans-serif;
+                                  font-size: 24px;
+                                  font-weight: normal;
+                                  margin: 30px 0px;
+                                  padding: 0px;
+                                "
+                              >
+                                Verify your email to {(isSignIn ? "sign in" :
+                                "sign up")} to
+                                <strong
+                                  style="color: rgb(0, 0, 0); font-weight: bold"
+                                  ><span>Relic</span></strong
+                                >
+                              </h1>
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+
+                      <p
+                        style="
+                          color: rgb(0, 0, 0);
+                          font-family:
+                            -apple-system, BlinkMacSystemFont, 'Segoe UI',
+                            Roboto, Oxygen, Ubuntu, Cantarell, 'Fira Sans',
+                            'Droid Sans', 'Helvetica Neue', sans-serif;
+                          font-size: 14px;
+                          line-height: 24px;
+                        "
+                      >
+                        Hello
+                        <strong style="color: rgb(0, 0, 0); font-weight: bold"
+                          >{username}</strong
+                        >,
+                      </p>
+                      <p
+                        style="
+                          color: rgb(0, 0, 0);
+                          font-family:
+                            -apple-system, BlinkMacSystemFont, 'Segoe UI',
+                            Roboto, Oxygen, Ubuntu, Cantarell, 'Fira Sans',
+                            'Droid Sans', 'Helvetica Neue', sans-serif;
+                          font-size: 14px;
+                          line-height: 24px;
+                        "
+                      >
+                        To complete the {( isSignIn ? "sign-in" : "sign-up" )}
+                        process; enter the 6-digit code in the original window,
+                        or enter it in a new one by going to the link below:
+                      </p>
+                      <br />
+
+                      <div
+                        style="
+                          font-family:
+                            -apple-system, BlinkMacSystemFont, 'Segoe UI',
+                            Roboto, Oxygen, Ubuntu, Cantarell, 'Fira Sans',
+                            'Droid Sans', 'Helvetica Neue', sans-serif;
+                          display: block;
+                          padding: 0.5rem 0;
+                          text-align: center;
+                          width: 100%;
+                          background-color: #f4f4f5;
+                          font-size: 1rem;
+                          font-weight: bold;
+                        "
+                      >
+                        {otp}
+                      </div>
+                      <br />
+
+                      <p
+                        style="
+                          color: rgb(0, 0, 0);
+                          font-family:
+                            -apple-system, BlinkMacSystemFont, 'Segoe UI',
+                            Roboto, Oxygen, Ubuntu, Cantarell, 'Fira Sans',
+                            'Droid Sans', 'Helvetica Neue', sans-serif;
+                          font-size: 14px;
+                          line-height: 24px;
+                        "
+                      >
+                        <a
+                          href="{verifyUrl}"
+                          style="color: rgb(6, 125, 247); text-decoration: none"
+                          target="_blank"
+                          >{verifyUrl}</a
+                        >
+                      </p>
+                      <br />
+                      <p
+                        style="
+                          color: rgb(0, 0, 0);
+                          font-family:
+                            -apple-system, BlinkMacSystemFont, 'Segoe UI',
+                            Roboto, Oxygen, Ubuntu, Cantarell, 'Fira Sans',
+                            'Droid Sans', 'Helvetica Neue', sans-serif;
+                          font-size: 14px;
+                          line-height: 24px;
+                        "
+                      >
+                        This link and code will only be valid for the next 30
+                        minutes.
+                      </p>
+                      <hr
+                        style="
+                          border-right: none;
+                          border-bottom: none;
+                          border-left: none;
+                          border-image: initial;
+                          border-top: 1px solid rgb(234, 234, 234);
+                          margin: 26px 0px;
+                          width: 100%;
+                        "
+                      />
+                      <p
+                        style="
+                          color: rgb(102, 102, 102);
+                          font-family:
+                            -apple-system, BlinkMacSystemFont, 'Segoe UI',
+                            Roboto, Oxygen, Ubuntu, Cantarell, 'Fira Sans',
+                            'Droid Sans', 'Helvetica Neue', sans-serif;
+                          font-size: 12px;
+                          line-height: 24px;
+                        "
+                      >
+                        If you didn't attempt to sign in but received this
+                        email, you can safely ignore this email. Don't share or
+                        forward the 6-digit code with anyone.
+                      </p>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </body>
+</html>

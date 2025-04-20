@@ -1,6 +1,6 @@
 import { cn } from '@/lib/utils'
 
-export default function Mark({ className }: { className?: string }) {
+export default function LogoMark({ className }: { className?: string }) {
   return (
     <svg
       width="1260"
