@@ -237,9 +237,9 @@ namespace MyApp.Namespace
                         {
                             HttpOnly = true,
                             Secure = true,
-                            // SameSite = SameSiteMode.Strict,
+                            SameSite = SameSiteMode.None,
                             Expires = DateTime.UtcNow.AddMinutes(15),
-                            Domain = Environment.GetEnvironmentVariable("COOKIE_DOMAIN"),
+                            // Domain = Environment.GetEnvironmentVariable("COOKIE_DOMAIN"),
                             IsEssential = true,
                         }
                     );
@@ -250,9 +250,9 @@ namespace MyApp.Namespace
                         {
                             HttpOnly = true,
                             Secure = true,
-                            // SameSite = SameSiteMode.Strict,
+                            SameSite = SameSiteMode.None,
                             Expires = refreshToken.ExpiryDate,
-                            Domain = Environment.GetEnvironmentVariable("COOKIE_DOMAIN"),
+                            // Domain = Environment.GetEnvironmentVariable("COOKIE_DOMAIN"),
                             IsEssential = true,
                         }
                     );
@@ -304,9 +304,9 @@ namespace MyApp.Namespace
                 {
                     HttpOnly = true,
                     Secure = true,
-                    // SameSite = SameSiteMode.Strict,
+                    SameSite = SameSiteMode.None,
                     Expires = DateTime.UtcNow.AddMinutes(15),
-                    Domain = Environment.GetEnvironmentVariable("COOKIE_DOMAIN"),
+                    // Domain = Environment.GetEnvironmentVariable("COOKIE_DOMAIN"),
                     IsEssential = true,
                 }
             );
@@ -317,9 +317,9 @@ namespace MyApp.Namespace
                 {
                     HttpOnly = true,
                     Secure = true,
-                    // SameSite = SameSiteMode.Strict,
+                    SameSite = SameSiteMode.None,
                     Expires = newRefreshToken.ExpiryDate,
-                    Domain = Environment.GetEnvironmentVariable("COOKIE_DOMAIN"),
+                    // Domain = Environment.GetEnvironmentVariable("COOKIE_DOMAIN"),
                     IsEssential = true,
                 }
             );
