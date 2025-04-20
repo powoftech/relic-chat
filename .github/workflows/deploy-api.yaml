@@ -29,3 +29,15 @@ jobs:
           context: ./ReactWithASP.Server
           push: true
           tags: ${{ secrets.ACR_REGISTRY }}/api:latest
+
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Deploy to Azure Web App
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: "relic-api-azure-app"
+          slot-name: "production"
+          images: "${{secrets.ACR_REGISTRY}}/api:latest"

@@ -1,21 +1,24 @@
 import axios, { HttpStatusCode } from 'axios'
 
-// Track if we're currently refreshing to prevent multiple refresh attempts
-let isRefreshing = false
-// Store pending requests to retry after token refresh
-let failedQueue = []
-
 const api = axios.create({
   baseURL: `${import.meta.env.VITE_API_URL || 'https://localhost:8001'}/api`,
   withCredentials: true,
 })
 
-const processQueue = (error, token = null) => {
-  failedQueue.forEach((prom) => {
+// Track if we're currently refreshing to prevent multiple refresh attempts
+let isRefreshing = false
+// Store pending requests to retry after token refresh
+let failedQueue: {
+  resolve: (value: unknown) => void
+  reject: (reason?: unknown) => void
+}[] = []
+
+const processQueue = (error: unknown, token = null) => {
+  failedQueue.forEach((promise) => {
     if (error) {
-      prom.reject(error)
+      promise.reject(error)
     } else {
-      prom.resolve()
+      promise.resolve(token)
     }
   })
 
