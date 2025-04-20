@@ -237,9 +237,10 @@ namespace MyApp.Namespace
                         {
                             HttpOnly = true,
                             Secure = true,
-                            SameSite = SameSiteMode.Strict,
+                            // SameSite = SameSiteMode.Strict,
                             Expires = DateTime.UtcNow.AddMinutes(15),
                             Domain = Environment.GetEnvironmentVariable("COOKIE_DOMAIN"),
+                            IsEssential = true,
                         }
                     );
                     Response.Cookies.Append(
@@ -249,9 +250,10 @@ namespace MyApp.Namespace
                         {
                             HttpOnly = true,
                             Secure = true,
-                            SameSite = SameSiteMode.Strict,
+                            // SameSite = SameSiteMode.Strict,
                             Expires = refreshToken.ExpiryDate,
                             Domain = Environment.GetEnvironmentVariable("COOKIE_DOMAIN"),
+                            IsEssential = true,
                         }
                     );
 
@@ -302,9 +304,10 @@ namespace MyApp.Namespace
                 {
                     HttpOnly = true,
                     Secure = true,
-                    SameSite = SameSiteMode.Strict,
+                    // SameSite = SameSiteMode.Strict,
                     Expires = DateTime.UtcNow.AddMinutes(15),
                     Domain = Environment.GetEnvironmentVariable("COOKIE_DOMAIN"),
+                    IsEssential = true,
                 }
             );
             Response.Cookies.Append(
@@ -314,9 +317,10 @@ namespace MyApp.Namespace
                 {
                     HttpOnly = true,
                     Secure = true,
-                    SameSite = SameSiteMode.Strict,
+                    // SameSite = SameSiteMode.Strict,
                     Expires = newRefreshToken.ExpiryDate,
                     Domain = Environment.GetEnvironmentVariable("COOKIE_DOMAIN"),
+                    IsEssential = true,
                 }
             );
 
