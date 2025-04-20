@@ -38,6 +38,6 @@ jobs:
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
         with:
-          app-name: "relic-api-azure-app"
+          app-name: "relic-api-app-service"
           slot-name: "production"
           images: "${{secrets.ACR_REGISTRY}}/api:latest"

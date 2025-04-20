@@ -48,8 +48,22 @@ try
             MyAllowSpecificOrigins,
             policy =>
             {
+                // Development origins
+                var origins = new List<string>
+                {
+                    "http://localhost:3000",
+                    "https://localhost:3000",
+                };
+
+                // Add production origin if configured
+                var productionOrigin = Environment.GetEnvironmentVariable("WEB_APP_URL");
+                if (!string.IsNullOrEmpty(productionOrigin))
+                {
+                    origins = new List<string> { productionOrigin };
+                }
+
                 policy
-                    .WithOrigins("http://localhost:3000", "https://localhost:3000")
+                    .WithOrigins(origins.ToArray())
                     .AllowAnyHeader()
                     .AllowAnyMethod()
                     .AllowCredentials();
