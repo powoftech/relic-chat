@@ -3,6 +3,7 @@ using System.Security.Claims;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -230,34 +231,7 @@ namespace MyApp.Namespace
                     _context.RefreshTokens.Add(refreshToken);
                     await _context.SaveChangesAsync();
 
-                    Response.Cookies.Append(
-                        "accessToken",
-                        accessToken,
-                        new CookieOptions
-                        {
-                            HttpOnly = true,
-                            Secure = true,
-                            SameSite = SameSiteMode.None,
-                            Expires = DateTime.UtcNow.AddMinutes(15),
-                            // Domain = Environment.GetEnvironmentVariable("COOKIE_DOMAIN"),
-                            IsEssential = true,
-                        }
-                    );
-                    Response.Cookies.Append(
-                        "refreshToken",
-                        refreshToken.Token,
-                        new CookieOptions
-                        {
-                            HttpOnly = true,
-                            Secure = true,
-                            SameSite = SameSiteMode.None,
-                            Expires = refreshToken.ExpiryDate,
-                            // Domain = Environment.GetEnvironmentVariable("COOKIE_DOMAIN"),
-                            IsEssential = true,
-                        }
-                    );
-
-                    return Ok(new { Message = "Signed in successfully." });
+                    return Ok(new { AccessToken = accessToken, RefreshToken = refreshToken.Token });
                 }
                 return Unauthorized();
             }
@@ -272,14 +246,13 @@ namespace MyApp.Namespace
         }
 
         [HttpPost("refresh")]
-        public async Task<IActionResult> RefreshToken()
+        public async Task<IActionResult> RefreshToken([FromBody] RefreshRequest request)
         {
-            var refreshToken = Request.Cookies["refreshToken"];
-            if (string.IsNullOrEmpty(refreshToken))
+            if (request == null || string.IsNullOrEmpty(request.RefreshToken))
                 return Unauthorized("No refresh token provided");
 
             var storedToken = await _context.RefreshTokens.FirstOrDefaultAsync(t =>
-                t.Token == refreshToken && t.ExpiryDate > DateTime.UtcNow
+                t.Token == request.RefreshToken && t.ExpiryDate > DateTime.UtcNow
             );
 
             if (storedToken == null)
@@ -297,45 +270,17 @@ namespace MyApp.Namespace
             _context.RefreshTokens.Add(newRefreshToken);
             await _context.SaveChangesAsync();
 
-            Response.Cookies.Append(
-                "accessToken",
-                newAccessToken,
-                new CookieOptions
-                {
-                    HttpOnly = true,
-                    Secure = true,
-                    SameSite = SameSiteMode.None,
-                    Expires = DateTime.UtcNow.AddMinutes(15),
-                    // Domain = Environment.GetEnvironmentVariable("COOKIE_DOMAIN"),
-                    IsEssential = true,
-                }
-            );
-            Response.Cookies.Append(
-                "refreshToken",
-                newRefreshToken.Token,
-                new CookieOptions
-                {
-                    HttpOnly = true,
-                    Secure = true,
-                    SameSite = SameSiteMode.None,
-                    Expires = newRefreshToken.ExpiryDate,
-                    // Domain = Environment.GetEnvironmentVariable("COOKIE_DOMAIN"),
-                    IsEssential = true,
-                }
-            );
-
-            return Ok(new { Message = "Token refreshed" });
+            return Ok(new { AccessToken = newAccessToken, RefreshToken = newRefreshToken.Token });
         }
 
         [HttpPost("signout")]
-        public async Task<IActionResult> UserSignOut()
+        public async Task<IActionResult> UserSignOut([FromBody] RefreshRequest request)
         {
-            var refreshToken = Request.Cookies["refreshToken"];
-            if (string.IsNullOrEmpty(refreshToken))
-                return Unauthorized(new { Message = "No refresh token provided." });
+            if (request == null || string.IsNullOrEmpty(request.RefreshToken))
+                return Unauthorized("No refresh token provided");
 
             var storedToken = await _context.RefreshTokens.FirstOrDefaultAsync(t =>
-                t.Token == refreshToken && t.ExpiryDate > DateTime.UtcNow
+                t.Token == request.RefreshToken && t.ExpiryDate > DateTime.UtcNow
             );
 
             if (storedToken != null)
@@ -344,24 +289,21 @@ namespace MyApp.Namespace
                 await _context.SaveChangesAsync();
             }
 
-            Response.Cookies.Delete("accessToken");
-            Response.Cookies.Delete("refreshToken");
-
             return Ok(new { Message = "Signed out successfully." });
         }
 
+        [Authorize(AuthenticationSchemes = "Bearer")]
         [HttpGet("me")]
         public async Task<IActionResult> GetUserInfo()
         {
-            var accessToken = Request.Cookies["accessToken"];
-            if (string.IsNullOrEmpty(accessToken))
-                return Unauthorized(new { Message = "No access token provided." });
-
             try
             {
-                var email = DecodeJwtToken(accessToken);
+                var email = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                Console.WriteLine("Email: " + email);
                 if (string.IsNullOrEmpty(email))
+                {
                     return Unauthorized(new { Message = "Invalid or expired token." });
+                }
 
                 var user = await _userManager.FindByEmailAsync(email);
                 if (user != null)
@@ -375,13 +317,18 @@ namespace MyApp.Namespace
                             user.ProfilePictureUrl,
                         }
                     );
+                else
+                    return Unauthorized(new { Message = "Invalid or expired token." });
             }
             catch (SecurityTokenExpiredException)
             {
                 return Unauthorized(new { Message = "Invalid or expired token." });
             }
-
-            return Unauthorized(new { Message = "User not found." });
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in GetUserInfo");
+                return Unauthorized(new { Message = "Authentication failed." });
+            }
         }
 
         private string GenerateVerifyToken(string? normalizedEmail)
@@ -725,4 +672,9 @@ public class SignInModel
 {
     public string Email { get; set; }
     public string Password { get; set; }
+}
+
+public class RefreshRequest
+{
+    public string RefreshToken { get; set; }
 }

@@ -1,4 +1,5 @@
 using System.Text;
+using System.Text.Json;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -94,8 +95,11 @@ try
             Password =
                 Environment.GetEnvironmentVariable("REDIS_PASSWORD")
                 ?? throw new InvalidOperationException("'REDIS_PASSWORD' not found."),
-            Ssl = true,
-            SslProtocols = System.Security.Authentication.SslProtocols.Tls12,
+            Ssl = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Production",
+            SslProtocols =
+                Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Production"
+                    ? System.Security.Authentication.SslProtocols.Tls12
+                    : System.Security.Authentication.SslProtocols.None,
         };
 
         configuration.AbortOnConnectFail = false;
@@ -135,31 +139,43 @@ try
         .AddDefaultTokenProviders();
 
     builder
-        .Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-        .AddJwtBearer(
-            JwtBearerDefaults.AuthenticationScheme,
-            options =>
+        .Services.AddAuthentication(options =>
+        {
+            options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+            options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+        })
+        .AddJwtBearer(options =>
+        {
+            options.TokenValidationParameters = new TokenValidationParameters
             {
-                options.TokenValidationParameters = new TokenValidationParameters
+                ValidateIssuer = true,
+                ValidateAudience = true,
+                ValidateIssuerSigningKey = true,
+                ValidateLifetime = true,
+                ValidIssuer = Environment.GetEnvironmentVariable("JWT_ISSUER"),
+                ValidAudience = Environment.GetEnvironmentVariable("JWT_AUDIENCE"),
+                IssuerSigningKey = new SymmetricSecurityKey(
+                    Encoding.UTF8.GetBytes(
+                        Environment.GetEnvironmentVariable("JWT_KEY")
+                            ?? throw new InvalidOperationException("'JWT_KEY' is not configured.")
+                    )
+                ),
+            };
+            options.Events = new JwtBearerEvents
+            {
+                OnChallenge = context =>
                 {
-                    ValidateAudience = true,
-                    ValidAudience = Environment.GetEnvironmentVariable("JWT_AUDIENCE"),
-                    ValidateIssuer = true,
-                    ValidIssuer = Environment.GetEnvironmentVariable("JWT_ISSUER"),
-                    ValidateIssuerSigningKey = true,
-                    IssuerSigningKey = new SymmetricSecurityKey(
-                        Encoding.UTF8.GetBytes(
-                            Environment.GetEnvironmentVariable("JWT_KEY")
-                                ?? throw new InvalidOperationException(
-                                    "'JWT_KEY' is not configured."
-                                )
-                        )
-                    ),
-                    ValidateLifetime = true,
-                };
-            }
-        );
+                    // Override the default behavior to return 401 instead of redirecting
+                    context.HandleResponse();
+                    context.Response.StatusCode = 401;
+                    context.Response.ContentType = "application/json";
+                    var result = JsonSerializer.Serialize(new { Message = "Unauthorized" });
+                    return context.Response.WriteAsync(result);
+                },
+            };
+        });
 
+    builder.Services.AddAuthorization();
     builder.Services.AddControllers();
 
     // OpenAPI and Swagger UI

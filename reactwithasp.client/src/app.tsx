@@ -57,12 +57,12 @@ function AppRoutes() {
 export default function App() {
   return (
     <ThemeProvider>
-      <Toaster />
-      <BrowserRouter>
-        <AuthProvider>
+      <AuthProvider>
+        <Toaster closeButton richColors />
+        <BrowserRouter>
           <AppRoutes />
-        </AuthProvider>
-      </BrowserRouter>
+        </BrowserRouter>
+      </AuthProvider>
     </ThemeProvider>
   )
 }

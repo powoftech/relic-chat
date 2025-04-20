@@ -1,6 +1,6 @@
 import api from '@/services/api'
+import Cookies from 'js-cookie'
 import { createContext, useContext, useEffect, useState } from 'react'
-import { useNavigate } from 'react-router'
 
 type User = {
   id: string
@@ -23,7 +23,6 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)
-  const navigate = useNavigate()
 
   const refreshUser = async () => {
     setIsLoading(true)
@@ -43,9 +42,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signOut = async () => {
     try {
-      await api.post('/auth/signout')
+      await api.post('/auth/signout', {
+        refreshToken: Cookies.get('refresh_token'),
+      })
+      sessionStorage.removeItem('access_token')
+      Cookies.remove('refresh_token')
       setUser(null)
-      navigate('/signin')
+      window.location.href = '/signin'
     } catch (error) {
       console.error('Error during sign out:', error)
     }

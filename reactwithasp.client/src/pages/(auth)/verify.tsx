@@ -12,6 +12,7 @@ import { AxiosError, HttpStatusCode } from 'axios'
 import { REGEXP_ONLY_DIGITS } from 'input-otp'
 import * as jose from 'jose'
 import { JWTInvalid } from 'jose/errors'
+import Cookies from 'js-cookie'
 import { MoveLeftIcon } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router'
@@ -62,12 +63,21 @@ export default function VerifyPage() {
       })
 
       if (response.status === HttpStatusCode.Ok) {
+        const { accessToken, refreshToken } = response.data
+        sessionStorage.setItem('access_token', accessToken)
+        Cookies.set('refresh_token', refreshToken, {
+          expires: 7, // 7 days
+          secure: true,
+          sameSite: 'Strict',
+        })
+
         toast.success('You will be redirected to homepage soon.')
         await refreshUser()
         await sleep(1000)
         navigate('/')
         return
       }
+      sessionStorage.setItem('email', email)
     } catch (error) {
       if (error instanceof AxiosError && error.response) {
         toast.warning('This code has been used or expired.')

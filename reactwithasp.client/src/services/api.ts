@@ -1,9 +1,24 @@
 import axios, { HttpStatusCode } from 'axios'
+import Cookies from 'js-cookie'
 
 const api = axios.create({
   baseURL: `${import.meta.env.VITE_API_URL || 'https://localhost:8001'}/api`,
   withCredentials: true,
 })
+
+// Add a request interceptor to include the access token in the headers
+api.interceptors.request.use(
+  (config) => {
+    const accessToken = sessionStorage.getItem('access_token')
+
+    if (accessToken) {
+      config.headers.Authorization = `Bearer ${accessToken}`
+    }
+
+    return config
+  },
+  (error) => Promise.reject(error),
+)
 
 // Track if we're currently refreshing to prevent multiple refresh attempts
 let isRefreshing = false
@@ -40,7 +55,14 @@ api.interceptors.response.use(
       isRefreshing = true
 
       try {
-        await api.post('/auth/refresh')
+        const response = await api.post('/auth/refresh')
+        const { accessToken, refreshToken } = response.data
+        sessionStorage.set('access_token', accessToken)
+        Cookies.set('refresh_token', refreshToken, {
+          expires: 7, // 7 days
+          secure: true,
+          sameSite: 'Strict',
+        })
 
         // Process all the requests that were waiting for the token refresh
         processQueue(null)
