@@ -239,6 +239,7 @@ namespace MyApp.Namespace
                             Secure = true,
                             SameSite = SameSiteMode.Strict,
                             Expires = DateTime.UtcNow.AddMinutes(15),
+                            Domain = Environment.GetEnvironmentVariable("COOKIE_DOMAIN"),
                         }
                     );
                     Response.Cookies.Append(
@@ -250,6 +251,7 @@ namespace MyApp.Namespace
                             Secure = true,
                             SameSite = SameSiteMode.Strict,
                             Expires = refreshToken.ExpiryDate,
+                            Domain = Environment.GetEnvironmentVariable("COOKIE_DOMAIN"),
                         }
                     );
 
@@ -302,6 +304,7 @@ namespace MyApp.Namespace
                     Secure = true,
                     SameSite = SameSiteMode.Strict,
                     Expires = DateTime.UtcNow.AddMinutes(15),
+                    Domain = Environment.GetEnvironmentVariable("COOKIE_DOMAIN"),
                 }
             );
             Response.Cookies.Append(
@@ -313,6 +316,7 @@ namespace MyApp.Namespace
                     Secure = true,
                     SameSite = SameSiteMode.Strict,
                     Expires = newRefreshToken.ExpiryDate,
+                    Domain = Environment.GetEnvironmentVariable("COOKIE_DOMAIN"),
                 }
             );
 

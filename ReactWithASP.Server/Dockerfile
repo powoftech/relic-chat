@@ -9,7 +9,6 @@ COPY ["./ReactWithASP.Server.csproj", "ReactWithASP.Server/"]
 RUN dotnet restore "ReactWithASP.Server/ReactWithASP.Server.csproj"
 COPY . "ReactWithASP.Server/"
 WORKDIR "/src/ReactWithASP.Server"
-RUN ls -al
 RUN dotnet build "ReactWithASP.Server.csproj" -c Release -o /app/build
 
 FROM build AS publish
