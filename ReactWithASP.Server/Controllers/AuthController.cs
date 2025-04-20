@@ -248,19 +248,20 @@ namespace MyApp.Namespace
         [HttpPost("refresh")]
         public async Task<IActionResult> RefreshToken([FromBody] RefreshRequest request)
         {
+            Console.WriteLine("Refresh token request: " + request.RefreshToken);
             if (request == null || string.IsNullOrEmpty(request.RefreshToken))
-                return Unauthorized("No refresh token provided");
+                return BadRequest(new { Message = "No refresh token provided." });
 
             var storedToken = await _context.RefreshTokens.FirstOrDefaultAsync(t =>
                 t.Token == request.RefreshToken && t.ExpiryDate > DateTime.UtcNow
             );
 
             if (storedToken == null)
-                return Unauthorized("Invalid or expired refresh token");
+                return BadRequest(new { Message = "Invalid or expired refresh token." });
 
             var user = await _userManager.FindByIdAsync(storedToken.UserId);
             if (user == null)
-                return Unauthorized();
+                return BadRequest(new { Message = "Invalid or expired refresh token." });
 
             var newAccessToken = GenerateAccessToken(user.NormalizedEmail);
             var newRefreshToken = GenerateRefreshToken(user.Id);

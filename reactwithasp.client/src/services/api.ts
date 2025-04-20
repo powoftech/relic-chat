@@ -55,9 +55,11 @@ api.interceptors.response.use(
       isRefreshing = true
 
       try {
-        const response = await api.post('/auth/refresh')
+        const response = await api.post('/auth/refresh', {
+          refreshToken: Cookies.get('refresh_token'),
+        })
         const { accessToken, refreshToken } = response.data
-        sessionStorage.set('access_token', accessToken)
+        sessionStorage.setItem('access_token', accessToken)
         Cookies.set('refresh_token', refreshToken, {
           expires: 7, // 7 days
           secure: true,
