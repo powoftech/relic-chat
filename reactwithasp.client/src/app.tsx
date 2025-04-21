@@ -2,17 +2,19 @@ import { NavigationProgress } from '@/components/navigation-progress'
 import { AuthProvider } from '@/components/providers/auth-provider'
 import { ThemeProvider } from '@/components/providers/theme-provider'
 import { Toaster } from '@/components/ui/sonner'
-import AuthLayout from '@/layouts/auth'
-import ProtectedLayout from '@/layouts/protected'
+import AuthLayout from '@/layouts/auth-layout'
+import ProtectedLayout from '@/layouts/protected-layout'
 import { lazy, Suspense, useEffect } from 'react'
 import { BrowserRouter, Route, Routes, useLocation } from 'react-router'
 
-const HomePage = lazy(() => import('@/pages/home'))
-const NotFoundPage = lazy(() => import('@/pages/not-found'))
+const HomePage = lazy(() => import('@/pages/home-page'))
+const NotFoundPage = lazy(() => import('@/pages/not-found-page'))
 const SignInPage = lazy(() => import('@/pages/(auth)/signin'))
 const SignUpPage = lazy(() => import('@/pages/(auth)/signup'))
 const VerifyPage = lazy(() => import('@/pages/(auth)/verify'))
-const MessagesPage = lazy(() => import('@/pages/messages'))
+const ChatsPage = lazy(() => import('@/pages/chats-page'))
+const RequestsPage = lazy(() => import('@/pages/requests-page'))
+const ArchivePage = lazy(() => import('@/pages/archive-page'))
 
 function AppRoutes() {
   const location = useLocation()
@@ -25,7 +27,11 @@ function AppRoutes() {
       '/signin': 'Sign In',
       '/signup': 'Sign Up',
       '/verify': 'Verification',
-      '/messages': 'Messages',
+      '/chats': 'Chats',
+      '/requests': 'Requests',
+      '/archive': 'Archive',
+      '/support': 'Support',
+      '/feedback': 'Feedback',
       '*': 'Page Not Found',
     }
 
@@ -45,7 +51,9 @@ function AppRoutes() {
             <Route path="/verify" element={<VerifyPage />} />
           </Route>
           <Route element={<ProtectedLayout />}>
-            <Route path="/messages" element={<MessagesPage />} />
+            <Route path="/chats" element={<ChatsPage />} />
+            <Route path="/requests" element={<RequestsPage />} />
+            <Route path="/archive" element={<ArchivePage />} />
           </Route>
           <Route path="*" element={<NotFoundPage />} />
         </Routes>

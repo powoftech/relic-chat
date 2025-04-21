@@ -7,15 +7,15 @@ import {
   InputOTPSlot,
 } from '@/components/ui/input-otp'
 import { sleep } from '@/lib/utils'
-import api from '@/services/api'
+import api, { setAccessToken } from '@/services/api'
 import { AxiosError, HttpStatusCode } from 'axios'
 import { REGEXP_ONLY_DIGITS } from 'input-otp'
 import * as jose from 'jose'
 import { JWTInvalid } from 'jose/errors'
 import Cookies from 'js-cookie'
 import { MoveLeftIcon } from 'lucide-react'
-import { useEffect, useState } from 'react'
-import { Link, useNavigate } from 'react-router'
+import { useState } from 'react'
+import { Link, Navigate, useNavigate } from 'react-router'
 import { toast } from 'sonner'
 
 export default function VerifyPage() {
@@ -25,33 +25,29 @@ export default function VerifyPage() {
   const navigate = useNavigate()
   const { refreshUser } = useAuth()
 
-  useEffect(() => {
-    try {
-      const urlParams = new URLSearchParams(window.location.search)
-      const tokenParam = urlParams.get('token')
+  try {
+    const urlParams = new URLSearchParams(window.location.search)
+    const tokenParam = urlParams.get('token')
 
-      if (tokenParam === null) {
-        navigate('/signin')
-        return
-      }
-
-      setVerifyToken(tokenParam)
-      const payload = jose.decodeJwt(tokenParam)
-      const normalizedEmail = payload.sub?.toLowerCase()
-
-      if (normalizedEmail === undefined) {
-        navigate('/signin')
-        return
-      }
-
-      setEmail(normalizedEmail)
-    } catch (error) {
-      if (!(error instanceof JWTInvalid)) {
-        console.error(error)
-      }
-      navigate('/signin')
+    if (tokenParam === null) {
+      return <Navigate to={'/signin'} replace />
     }
-  }, [navigate])
+
+    setVerifyToken(tokenParam)
+    const payload = jose.decodeJwt(tokenParam)
+    const normalizedEmail = payload.sub?.toLowerCase()
+
+    if (normalizedEmail === undefined) {
+      return <Navigate to={'/signin'} replace />
+    }
+
+    setEmail(normalizedEmail)
+  } catch (error) {
+    if (!(error instanceof JWTInvalid)) {
+      console.error(error)
+    }
+    return <Navigate to={'/signin'} replace />
+  }
 
   async function onSubmit(otp: string) {
     if (!otp || otp.length !== 6 || !verifyToken) return
@@ -64,7 +60,10 @@ export default function VerifyPage() {
 
       if (response.status === HttpStatusCode.Ok) {
         const { accessToken, refreshToken } = response.data
-        sessionStorage.setItem('access_token', accessToken)
+
+        // Store in memory instead of sessionStorage
+        setAccessToken(accessToken)
+
         Cookies.set('refresh_token', refreshToken, {
           expires: 7, // 7 days
           secure: true,
@@ -74,10 +73,8 @@ export default function VerifyPage() {
         toast.success('You will be redirected to homepage soon.')
         await refreshUser()
         await sleep(1000)
-        navigate('/')
-        return
+        return <Navigate to={'/'} replace />
       }
-      sessionStorage.setItem('email', email)
     } catch (error) {
       if (error instanceof AxiosError && error.response) {
         toast.warning('This code has been used or expired.')

@@ -248,7 +248,6 @@ namespace MyApp.Namespace
         [HttpPost("refresh")]
         public async Task<IActionResult> RefreshToken([FromBody] RefreshRequest request)
         {
-            Console.WriteLine("Refresh token request: " + request.RefreshToken);
             if (request == null || string.IsNullOrEmpty(request.RefreshToken))
                 return BadRequest(new { Message = "No refresh token provided." });
 
@@ -259,19 +258,29 @@ namespace MyApp.Namespace
             if (storedToken == null)
                 return BadRequest(new { Message = "Invalid or expired refresh token." });
 
-            var user = await _userManager.FindByIdAsync(storedToken.UserId);
-            if (user == null)
-                return BadRequest(new { Message = "Invalid or expired refresh token." });
+            try
+            {
+                var user = await _userManager.FindByIdAsync(storedToken.UserId);
+                if (user == null)
+                    return BadRequest(new { Message = "Invalid or expired refresh token." });
 
-            var newAccessToken = GenerateAccessToken(user.NormalizedEmail);
-            var newRefreshToken = GenerateRefreshToken(user.Id);
+                var newAccessToken = GenerateAccessToken(user.NormalizedEmail);
+                var newRefreshToken = GenerateRefreshToken(user.Id);
 
-            // Replace old refresh token
-            _context.RefreshTokens.Remove(storedToken);
-            _context.RefreshTokens.Add(newRefreshToken);
-            await _context.SaveChangesAsync();
+                // Replace old refresh token
+                _context.RefreshTokens.Remove(storedToken);
+                _context.RefreshTokens.Add(newRefreshToken);
+                await _context.SaveChangesAsync();
 
-            return Ok(new { AccessToken = newAccessToken, RefreshToken = newRefreshToken.Token });
+                return Ok(
+                    new { AccessToken = newAccessToken, RefreshToken = newRefreshToken.Token }
+                );
+            }
+            catch (Exception e)
+            {
+                _logger.LogError($"Error while refreshing token: {e}");
+                return BadRequest(new { Message = "Error while refreshing token." });
+            }
         }
 
         [HttpPost("signout")]
@@ -300,7 +309,6 @@ namespace MyApp.Namespace
             try
             {
                 var email = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-                Console.WriteLine("Email: " + email);
                 if (string.IsNullOrEmpty(email))
                 {
                     return Unauthorized(new { Message = "Invalid or expired token." });

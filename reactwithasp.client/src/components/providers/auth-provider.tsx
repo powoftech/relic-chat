@@ -1,8 +1,8 @@
-import api from '@/services/api'
+import api, { getAccessToken, setAccessToken } from '@/services/api'
 import Cookies from 'js-cookie'
 import { createContext, useContext, useEffect, useState } from 'react'
 
-type User = {
+export type User = {
   id: string
   userName: string
   displayName: string
@@ -15,7 +15,7 @@ type AuthContextType = {
   isLoading: boolean
   isAuthenticated: boolean
   signOut: () => Promise<void>
-  refreshUser: () => Promise<void>
+  refreshUser: () => Promise<User | null>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -24,28 +24,51 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
-  const refreshUser = async () => {
+  async function refreshUser() {
     setIsLoading(true)
     try {
+      if (!Cookies.get('refresh_token')) {
+        setUser(null)
+        return null
+      }
+
+      if (!getAccessToken()) {
+        const response = await api.post('/auth/refresh', {
+          refreshToken: Cookies.get('refresh_token'),
+        })
+        const { accessToken, refreshToken } = response.data
+
+        // Store in memory instead of sessionStorage
+        setAccessToken(accessToken)
+
+        Cookies.set('refresh_token', refreshToken, {
+          expires: 7, // 7 days
+          secure: true,
+          sameSite: 'Strict',
+        })
+      }
+
       const response = await api.get('/auth/me')
       setUser(response.data)
       return response.data
     } catch (error) {
       console.error('Error fetching user data:', error)
       setUser(null)
-      // Don't redirect here - let the layout components handle the redirection
       return null
     } finally {
       setIsLoading(false)
     }
   }
 
-  const signOut = async () => {
+  async function signOut() {
     try {
       await api.post('/auth/signout', {
         refreshToken: Cookies.get('refresh_token'),
       })
-      sessionStorage.removeItem('access_token')
+
+      // Clear access token from memory
+      setAccessToken(null)
+
       Cookies.remove('refresh_token')
       setUser(null)
       window.location.href = '/signin'

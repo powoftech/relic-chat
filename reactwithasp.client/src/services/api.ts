@@ -1,6 +1,21 @@
 import axios, { HttpStatusCode } from 'axios'
 import Cookies from 'js-cookie'
 
+// Use memory storage for access token
+let accessToken: string | null = null
+
+export function setAccessToken(token: string | null) {
+  accessToken = token
+}
+
+export function getAccessToken() {
+  return accessToken
+}
+
+export function clearAccessToken() {
+  accessToken = null
+}
+
 const api = axios.create({
   baseURL: `${import.meta.env.VITE_API_URL || 'https://localhost:8001'}/api`,
   withCredentials: true,
@@ -9,8 +24,6 @@ const api = axios.create({
 // Add a request interceptor to include the access token in the headers
 api.interceptors.request.use(
   (config) => {
-    const accessToken = sessionStorage.getItem('access_token')
-
     if (accessToken) {
       config.headers.Authorization = `Bearer ${accessToken}`
     }
@@ -55,11 +68,17 @@ api.interceptors.response.use(
       isRefreshing = true
 
       try {
-        const response = await api.post('/auth/refresh', {
-          refreshToken: Cookies.get('refresh_token'),
-        })
-        const { accessToken, refreshToken } = response.data
-        sessionStorage.setItem('access_token', accessToken)
+        const response = await axios.post(
+          `${import.meta.env.VITE_API_URL || 'https://localhost:8001'}/api/auth/refresh`,
+          {
+            refreshToken: Cookies.get('refresh_token'),
+          },
+        )
+        const { accessToken: newAccessToken, refreshToken } = response.data
+
+        // Update access token in memory
+        setAccessToken(newAccessToken)
+
         Cookies.set('refresh_token', refreshToken, {
           expires: 7, // 7 days
           secure: true,
@@ -75,6 +94,11 @@ api.interceptors.response.use(
       } catch (refreshError) {
         processQueue(refreshError)
         isRefreshing = false
+
+        // Clear tokens on refresh failure
+        setAccessToken(null)
+        Cookies.remove('refresh_token')
+
         return Promise.reject(refreshError)
       }
     }

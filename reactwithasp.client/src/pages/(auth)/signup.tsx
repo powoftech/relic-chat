@@ -1,10 +1,3 @@
-import { zodResolver } from '@hookform/resolvers/zod'
-import { EyeIcon, EyeOffIcon, LoaderCircleIcon } from 'lucide-react'
-import { useState } from 'react'
-import { useForm } from 'react-hook-form'
-import { Link, useNavigate } from 'react-router'
-import * as z from 'zod'
-
 import Logo from '@/components/logo'
 import { Button } from '@/components/ui/button'
 import {
@@ -17,8 +10,14 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import api from '@/services/api'
+import { zodResolver } from '@hookform/resolvers/zod'
 import { AxiosError, HttpStatusCode } from 'axios'
+import { Eye, EyeOff, LoaderCircle } from 'lucide-react'
+import { useState } from 'react'
+import { useForm } from 'react-hook-form'
+import { Link, Navigate } from 'react-router'
 import { toast } from 'sonner'
+import * as z from 'zod'
 
 const formSchema = z.object({
   email: z.string().email({ message: 'Email address is invalid.' }),
@@ -40,8 +39,6 @@ type FormSchema = z.infer<typeof formSchema>
 
 export default function SignUpPage() {
   const [showPassword, setShowPassword] = useState(false)
-  const navigate = useNavigate()
-
   const form = useForm<FormSchema>({
     resolver: zodResolver(formSchema),
   })
@@ -51,8 +48,9 @@ export default function SignUpPage() {
       const response = await api.post('/auth/signup', data)
 
       if (response.status === HttpStatusCode.Ok) {
-        navigate(`/verify?token=${response.data.verifyToken}`)
-        return
+        return (
+          <Navigate to={`/verify?token=${response.data.verifyToken}`} replace />
+        )
       }
     } catch (error) {
       if (error instanceof AxiosError && error.response) {
@@ -153,9 +151,9 @@ export default function SignUpPage() {
                             onClick={() => setShowPassword(!showPassword)}
                           >
                             {showPassword ? (
-                              <EyeIcon className="size-4" />
+                              <Eye className="size-4" />
                             ) : (
-                              <EyeOffIcon className="size-4" />
+                              <EyeOff className="size-4" />
                             )}
                             <span className="sr-only">
                               {showPassword ? 'Hide password' : 'Show password'}
@@ -172,7 +170,7 @@ export default function SignUpPage() {
                     className="w-full"
                   >
                     {form.formState.isSubmitting && (
-                      <LoaderCircleIcon className="animate-spin" />
+                      <LoaderCircle className="animate-spin" />
                     )}
                     Sign Up
                   </Button>
