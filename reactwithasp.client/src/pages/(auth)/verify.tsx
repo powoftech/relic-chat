@@ -14,40 +14,46 @@ import * as jose from 'jose'
 import { JWTInvalid } from 'jose/errors'
 import Cookies from 'js-cookie'
 import { MoveLeftIcon } from 'lucide-react'
-import { useState } from 'react'
-import { Link, Navigate, useNavigate } from 'react-router'
+import { useEffect, useState } from 'react'
+import { Link, Navigate, useLocation, useNavigate } from 'react-router'
 import { toast } from 'sonner'
 
 export default function VerifyPage() {
   const [email, setEmail] = useState('')
   const [verifyToken, setVerifyToken] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const navigate = useNavigate()
   const { refreshUser } = useAuth()
+  const navigate = useNavigate()
+  const location = useLocation()
 
-  try {
-    const urlParams = new URLSearchParams(window.location.search)
-    const tokenParam = urlParams.get('token')
+  useEffect(() => {
+    try {
+      const urlParams = new URLSearchParams(location.search)
+      const tokenParam = urlParams.get('token')
 
-    if (tokenParam === null) {
-      return <Navigate to={'/signin'} replace />
+      if (tokenParam === null) {
+        navigate('/signin')
+        return
+      }
+
+      setVerifyToken(tokenParam)
+      const payload = jose.decodeJwt(tokenParam)
+      const normalizedEmail = payload.sub?.toLowerCase()
+
+      if (normalizedEmail === undefined) {
+        navigate('/signin')
+        return
+      }
+
+      setEmail(normalizedEmail)
+    } catch (error) {
+      if (!(error instanceof JWTInvalid)) {
+        console.error(error)
+      }
+      navigate('/signin')
+      return
     }
-
-    setVerifyToken(tokenParam)
-    const payload = jose.decodeJwt(tokenParam)
-    const normalizedEmail = payload.sub?.toLowerCase()
-
-    if (normalizedEmail === undefined) {
-      return <Navigate to={'/signin'} replace />
-    }
-
-    setEmail(normalizedEmail)
-  } catch (error) {
-    if (!(error instanceof JWTInvalid)) {
-      console.error(error)
-    }
-    return <Navigate to={'/signin'} replace />
-  }
+  }, [navigate])
 
   async function onSubmit(otp: string) {
     if (!otp || otp.length !== 6 || !verifyToken) return

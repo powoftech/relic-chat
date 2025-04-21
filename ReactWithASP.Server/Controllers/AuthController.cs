@@ -136,7 +136,7 @@ namespace MyApp.Namespace
                         user.UserName,
                         otp,
                         verifyUrl,
-                        false // isSignIn = false for sign up
+                        isSignIn: false // isSignIn = false for sign up
                     );
 
                     return Ok(new { VerifyToken = verifyToken });
@@ -180,7 +180,7 @@ namespace MyApp.Namespace
                         user.UserName,
                         otp,
                         verifyUrl,
-                        true // isSignIn = false for sign up
+                        isSignIn: true // isSignIn = false for sign up
                     );
 
                     return Ok(new { VerifyToken = verifyToken });

@@ -18,7 +18,7 @@ import { AxiosError, HttpStatusCode } from 'axios'
 import { Eye, EyeOff, LoaderCircle } from 'lucide-react'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
-import { Link, Navigate } from 'react-router'
+import { Link, useNavigate } from 'react-router'
 import { toast } from 'sonner'
 import * as z from 'zod'
 
@@ -38,6 +38,7 @@ export default function SignInPage() {
   const form = useForm<FormSchema>({
     resolver: zodResolver(formSchema),
   })
+  const navigate = useNavigate()
 
   async function onSubmit(data: FormSchema) {
     try {
@@ -50,9 +51,8 @@ export default function SignInPage() {
       const response = await api.post('/auth/signin', data)
 
       if (response.status === HttpStatusCode.Ok) {
-        return (
-          <Navigate to={`/verify?token=${response.data.verifyToken}`} replace />
-        )
+        navigate(`/verify?token=${response.data.verifyToken}`)
+        return
       }
     } catch (error) {
       if (error instanceof AxiosError && error.response) {
